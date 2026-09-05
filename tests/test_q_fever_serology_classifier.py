@@ -3,9 +3,13 @@ Automated Pytest Test Suite for Q Fever Serology Classifier.
 Domain: Clinical & Biomedical AI
 Standard: CAP / CLSI / ISO Standards
 """
+import os
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Set a test audit key before importing agents that use AuditLogger
+os.environ.setdefault("AUDIT_SECRET_KEY", "test-audit-secret-key-for-testing-only-32chars")
 
 import pytest
 from agents.base import PHIGuard, AuditLogger, SecurityException

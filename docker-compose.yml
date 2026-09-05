@@ -7,7 +7,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - AUDIT_SECRET_KEY=q-fever-serology-classifier-prod-audit-key-2026
+      # IMPORTANT: Change this to a cryptographically secure random key in production
+      # Generate one with: python -c "import secrets; print(secrets.token_hex(32))"
+      - AUDIT_SECRET_KEY=${AUDIT_SECRET_KEY:-change-me-to-a-secure-random-key-min-32chars}
       - MODEL_PROVIDER=mock
     restart: unless-stopped
     healthcheck:
