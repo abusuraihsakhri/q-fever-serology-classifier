@@ -4,16 +4,14 @@ WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    AUDIT_SECRET_KEY=docker-default-change-me-in-production-min-32chars
+    PYTHONHASHSEED=random
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml .
-RUN pip install --no-cache-dir -e ".[web]"
-
 COPY . .
+RUN pip install --no-cache-dir -e ".[web]"
 
 EXPOSE 8000
 

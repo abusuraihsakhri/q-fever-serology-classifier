@@ -102,3 +102,18 @@ def test_audit_logs_endpoint():
     assert "audit_trail" in data
     assert "verified" in data
     assert isinstance(data["verified"], bool)
+
+def test_serology_interpret_api():
+    response = client.post("/api/serology/interpret", json={
+        "phase_i_igg": "1:64", "phase_ii_igg": "1:256",
+        "prior_phase_ii_igg": "1:64", "persistent_focus": False
+    })
+    assert response.status_code == 200
+    assert response.json()["status"] == "acute_seroconversion_pattern"
+
+
+def test_serology_interpret_api_bad_titer():
+    response = client.post("/api/serology/interpret", json={
+        "phase_i_igg": "<1:16", "phase_ii_igg": 256
+    })
+    assert response.status_code == 422

@@ -14,21 +14,32 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install fastapi uvicorn pydantic pytest
+        pip install -e ".[dev]"
+        python -m pip check
 
     - name: Run Pytest Suite
       run: |
         pytest -v
+
+    - name: Validate Python package
+      run: |
+        python -m compileall -q agents serology_interpreter.py cli.py q_fever_serology.py
+        python -m build --wheel --sdist
+
+    - name: Check browser interpreter
+      run: |
+        node --check app.mjs
+        node --test tests/test_browser.mjs
 
     - name: Security SAST & Zero-PHI Audit
       run: |

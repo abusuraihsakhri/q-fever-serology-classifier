@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from .base import AuditLogger, PHIGuard, SecurityException
 from .models import SystemTaskPayload, ConsensusDossier
 from .supervisor import SystemSupervisor
+from serology_interpreter import SerologyInputError, interpret_serology
 
 supervisor = SystemSupervisor(model_provider="mock")
 
@@ -19,6 +20,27 @@ app = FastAPI(
 
 class ChatRequest(BaseModel):
     query: str
+
+
+class SerologyRequest(BaseModel):
+    phase_i_igg: str | int
+    phase_ii_igg: str | int
+    prior_phase_ii_igg: str | int | None = None
+    persistent_focus: bool = False
+
+
+@app.post("/api/serology/interpret")
+def api_interpret(request: SerologyRequest):
+    """IFA IgG interpretation only; no clinical diagnosis or patient identifiers."""
+    try:
+        return interpret_serology(
+            request.phase_i_igg,
+            request.phase_ii_igg,
+            request.prior_phase_ii_igg,
+            request.persistent_focus,
+        )
+    except SerologyInputError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.get("/health")
