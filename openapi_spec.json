@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Q Fever Serology Classifier API",
-    "description": "Enterprise Distributed Component Platform (Clinical & Cryptographic AI) adhering to CAP / CLSI / NIST Standards.",
-    "version": "3.0.0-ENTERPRISE",
+    "description": "Local educational IFA IgG interpretation, alongside compatibility-only mock audit endpoints.",
+    "version": "3.0.1",
     "contact": {
       "name": "Dr. Abu Suraih Sakhri",
       "url": "https://github.com/abusuraihsakhri"
@@ -22,7 +22,7 @@
     },
     "/metrics": {
       "get": {
-        "summary": "Prometheus operational metrics",
+        "summary": "Legacy operational counters (JSON)",
         "responses": {
           "200": {
             "description": "Prometheus text metrics"
@@ -76,7 +76,7 @@
     },
     "/api/chat": {
       "post": {
-        "summary": "Air-gapped supervisory conversational assistant",
+        "summary": "Non-clinical mock response (no LLM inference)",
         "requestBody": {
           "content": {
             "application/json": {
@@ -107,6 +107,72 @@
         "responses": {
           "200": {
             "description": "Cryptographic audit trail"
+          }
+        }
+      }
+    },
+    "/api/serology/interpret": {
+      "post": {
+        "summary": "Interpret phase I/II IgG IFA titers (educational, non-diagnostic)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phase_i_igg": {
+                    "oneOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "phase_ii_igg": {
+                    "oneOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "prior_phase_ii_igg": {
+                    "oneOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "persistent_focus": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                },
+                "required": [
+                  "phase_i_igg",
+                  "phase_ii_igg"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Educational IFA IgG interpretation and limitations"
+          },
+          "422": {
+            "description": "Invalid titer or field value"
           }
         }
       }

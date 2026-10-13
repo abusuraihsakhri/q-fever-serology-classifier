@@ -41,6 +41,15 @@ jobs:
         node --check app.mjs
         node --test tests/test_browser.mjs
 
+    - name: Static application smoke check
+      run: |
+        python -m http.server 8765 > /tmp/qfever-http.log 2>&1 &
+        SERVER_PID=$!
+        trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+        sleep 2
+        curl -fsS http://127.0.0.1:8765/ | grep -q "Q Fever Serology Interpreter"
+        curl -fsS http://127.0.0.1:8765/app.mjs | grep -q "export function classify"
+
     - name: Security SAST & Zero-PHI Audit
       run: |
         python -c "
