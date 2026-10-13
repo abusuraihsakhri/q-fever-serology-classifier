@@ -130,6 +130,8 @@ def main(argv=None):
             parser.error("CSV requires phase_i_igg and phase_ii_igg columns.")
         results = []
         for line, row in enumerate(reader, start=2):
+            if None in row:
+                parser.error(f"CSV line {line}: more values than header columns.")
             try:
                 raw_focus = (row.get("persistent_focus") or "").strip().lower()
                 if raw_focus not in ("", "false", "true", "0", "1", "no", "yes"):
@@ -137,8 +139,11 @@ def main(argv=None):
                 result = interpret_serology(row["phase_i_igg"], row["phase_ii_igg"], row.get("prior_phase_ii_igg"), raw_focus in ("true", "yes", "1"))
             except SerologyInputError as exc:
                 parser.error(f"CSV line {line}: {exc}")
-            results.append({**row, "status": result["status"], "interpretation": result["interpretation"], "fourfold_phase_ii_rise": result["fourfold_phase_ii_rise"], "next_step": result["next_step"]})
-        columns = list(reader.fieldnames) + ["status", "interpretation", "fourfold_phase_ii_rise", "next_step"]
+            # Preserve metadata while preventing spreadsheet formula execution on export.
+            clean_row = {key: ("'" + value if isinstance(value, str) and value.lstrip().startswith(("=", "+", "-", "@", "\t", "\r")) else value) for key, value in row.items()}
+            results.append({**clean_row, "status": result["status"], "interpretation": result["interpretation"], "fourfold_phase_ii_rise": result["fourfold_phase_ii_rise"], "next_step": result["next_step"]})
+        calculated_columns = ["status", "interpretation", "fourfold_phase_ii_rise", "next_step"]
+        columns = list(reader.fieldnames) + [name for name in calculated_columns if name not in reader.fieldnames]
     destination.parent.mkdir(parents=True, exist_ok=True)
     with destination.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=columns)

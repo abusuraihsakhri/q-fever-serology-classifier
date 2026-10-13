@@ -74,3 +74,32 @@ def test_cli_batch_rejects_partial_rows(tmp_path):
     with pytest.raises(SystemExit):
         main(["batch", "-i", str(infile), "-o", str(tmp_path / "out.csv")])
     assert not (tmp_path / "out.csv").exists()
+
+def test_cli_csv_formula_injection_is_escaped(tmp_path):
+    infile = tmp_path / "input.csv"
+    output = tmp_path / "output.csv"
+    infile.write_text("phase_i_igg,phase_ii_igg,comment\n64,256,=HYPERLINK(1)\n", encoding="utf-8")
+    assert main(["batch", "-i", str(infile), "-o", str(output)]) == 0
+    with output.open(newline="", encoding="utf-8") as stream:
+        row = next(csv.DictReader(stream))
+    assert row["comment"].startswith("'=")
+
+
+def test_cli_csv_duplicate_computed_field_is_overwritten_once(tmp_path):
+    infile = tmp_path / "input.csv"
+    output = tmp_path / "output.csv"
+    infile.write_text("phase_i_igg,phase_ii_igg,status\n64,256,stale\n", encoding="utf-8")
+    assert main(["batch", "-i", str(infile), "-o", str(output)]) == 0
+    with output.open(newline="", encoding="utf-8") as stream:
+        reader = csv.DictReader(stream)
+        assert reader.fieldnames.count("status") == 1
+        assert next(reader)["status"] == "single_sample_supportive"
+
+
+def test_cli_csv_extra_columns_are_rejected(tmp_path):
+    infile = tmp_path / "input.csv"
+    outfile = tmp_path / "output.csv"
+    infile.write_text("phase_i_igg,phase_ii_igg\n64,256,extra\n", encoding="utf-8")
+    with pytest.raises(SystemExit):
+        main(["batch", "-i", str(infile), "-o", str(outfile)])
+    assert not outfile.exists()
