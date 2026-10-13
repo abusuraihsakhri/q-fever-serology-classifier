@@ -1,15 +1,13 @@
-version: '3.8'
-
 services:
   q-fever-serology-classifier:
     build: .
     container_name: q-fever-serology-classifier
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
-      # IMPORTANT: Change this to a cryptographically secure random key in production
+      # A random key must be explicitly provided in the environment.
       # Generate one with: python -c "import secrets; print(secrets.token_hex(32))"
-      - AUDIT_SECRET_KEY=${AUDIT_SECRET_KEY:-change-me-to-a-secure-random-key-min-32chars}
+      - AUDIT_SECRET_KEY=${AUDIT_SECRET_KEY:?Set a random AUDIT_SECRET_KEY before starting}
       - MODEL_PROVIDER=mock
     restart: unless-stopped
     healthcheck:

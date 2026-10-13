@@ -36,3 +36,13 @@ output.csv
 # OS
 .DS_Store
 Thumbs.db
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Generated data
+_site/

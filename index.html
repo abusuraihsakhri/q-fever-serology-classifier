@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Local, educational interpretation of Coxiella burnetii phase I and II IgG IFA titers.">
+  <title>Q Fever Serology Interpreter</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#e9effa;background:#0b1220;line-height:1.5}
+    *{box-sizing:border-box}body{margin:0;padding:2rem 1.1rem}main{max-width:920px;margin:auto}
+    h1{font-size:clamp(1.6rem,3vw,2.3rem);margin:0 0 .5rem}h2{font-size:1.13rem;margin:0 0 1rem}p{margin:.55rem 0 1rem}
+    .subtitle,.muted{color:#aebcd0}a{color:#93c5fd}
+    .layout{display:grid;grid-template-columns:1.05fr 1fr;gap:1.1rem;margin-top:1.4rem}
+    .panel{background:#111e31;border:1px solid #30415b;border-radius:12px;padding:1.4rem}
+    label{display:block;font-size:.92rem;font-weight:600;margin:1rem 0 .35rem}
+    input[type=text]{width:100%;background:#0b1728;color:#f8fafc;border:1px solid #71829b;border-radius:7px;padding:.75rem;font:inherit}
+    input:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid #7dd3fc;outline-offset:2px}
+    .check{display:flex;align-items:flex-start;gap:.65rem;font-weight:400}
+    .check input{width:1.15rem;height:1.15rem;margin-top:.18rem}
+    button{margin-top:1.2rem;padding:.85rem 1rem;background:#2563eb;color:white;font:inherit;font-weight:700;border:0;border-radius:7px;width:100%;cursor:pointer}
+    button:hover{background:#1d4ed8}#error{color:#fca5a5;min-height:1.6em}
+    .result{border-left:4px solid #38bdf8;padding:0 0 0 1rem;margin:1.2rem 0}
+    .fine{font-size:.86rem;color:#aebcd0}.warn{border-left:4px solid #f59e0b;padding:.15rem 0 .15rem 1rem;margin-top:1.5rem}
+    @media(max-width:730px){body{padding:1.25rem .75rem}.layout{grid-template-columns:1fr}.panel{padding:1.1rem}}
+  </style>
+</head>
+<body>
+<main>
+  <header><h1>Q Fever Serology Interpreter</h1><p class="subtitle">Coxiella burnetii · Phase I/II IgG · Indirect immunofluorescence (IFA)</p></header>
+  <div class="warn"><strong>Educational decision support only.</strong> Results are not a diagnosis, emergency alert, or treatment recommendation. Do not enter patient identifiers. Clinical findings and assay methods matter.</div>
+  <div class="layout">
+    <section class="panel" aria-labelledby="inputs-heading">
+      <h2 id="inputs-heading">Serology results</h2>
+      <form id="serology-form">
+        <label for="phase-i">Phase I IgG titer (current)</label>
+        <input id="phase-i" type="text" inputmode="numeric" placeholder="e.g. 1:64" required>
+        <label for="phase-ii">Phase II IgG titer (current)</label>
+        <input id="phase-ii" type="text" inputmode="numeric" placeholder="e.g. 1:256" required>
+        <label for="prior-phase-ii">Phase II IgG titer (earlier, optional)</label>
+        <input id="prior-phase-ii" type="text" inputmode="numeric" placeholder="e.g. 1:64">
+        <p class="fine">Enter reciprocal dilution denominators (256 or 1:256). Use 0 only for an explicitly reported negative result; censored titers such as &lt;1:16 cannot be quantified here. Compare paired IFA specimens ideally 3–6 weeks apart.</p>
+        <label class="check" for="persistent-focus"><input type="checkbox" id="persistent-focus">A compatible persistent infection focus has been clinically identified (e.g. endocarditis or vascular infection)</label>
+        <button type="submit">Interpret serology</button>
+        <p id="error" role="alert" aria-live="polite"></p>
+      </form>
+    </section>
+    <section class="panel" aria-labelledby="result-heading">
+      <h2 id="result-heading">Interpretation</h2>
+      <p class="muted">No results have been submitted. Your inputs remain in this browser tab and are not transmitted to a server by this page.</p>
+      <div id="result" class="result" hidden aria-live="polite" role="status">
+        <h3 id="result-status"></h3><p id="result-details"></p>
+      </div>
+      <h2>Key diagnostic principles</h2>
+      <p>A <strong>≥4-fold phase II IgG rise</strong> on paired IFA supports acute Q fever. A single phase II IgG ≥1:128 is supportive, not definitive.</p>
+      <p><strong>Phase I IgG ≥1:1024</strong> requires assessment for a persistent focus. Titers alone do not establish chronic Q fever.</p>
+      <p><strong>Negative early serology does not exclude infection.</strong> IgM and relative phase dominance alone are insufficient for diagnosis.</p>
+      <p class="fine">Source: <a href="https://www.cdc.gov/q-fever/hcp/diagnosis-testing/index.html" rel="noopener noreferrer" target="_blank">CDC: Clinical and Laboratory Diagnosis for Q Fever</a> (May 2024). Laboratory-specific thresholds and clinical consultation take precedence.</p>
+    </section>
+  </div>
+  <p class="fine">Privacy: no analytics, remote fonts, storage, or server requests are used by this application. Do not enter protected health information.</p>
+</main>
+<script type="module" src="./app.mjs"></script>
+</body>
+</html>

@@ -7,13 +7,14 @@ from pydantic import BaseModel
 from .base import AuditLogger, PHIGuard, SecurityException
 from .models import SystemTaskPayload, ConsensusDossier
 from .supervisor import SystemSupervisor
+from serology_interpreter import SerologyInputError, interpret_serology
 
 supervisor = SystemSupervisor(model_provider="mock")
 
 app = FastAPI(
     title="Q Fever Serology Classifier API",
-    description="Enterprise Distributed Component Platform (Clinical & Biomedical AI)",
-    version="3.0.0-ENTERPRISE",
+    description="Experimental local serology interpretation and legacy operational audit API",
+    version="3.0.1",
 )
 
 
@@ -21,9 +22,30 @@ class ChatRequest(BaseModel):
     query: str
 
 
+class SerologyRequest(BaseModel):
+    phase_i_igg: str | int
+    phase_ii_igg: str | int
+    prior_phase_ii_igg: str | int | None = None
+    persistent_focus: bool = False
+
+
+@app.post("/api/serology/interpret")
+def api_interpret(request: SerologyRequest):
+    """IFA IgG interpretation only; no clinical diagnosis or patient identifiers."""
+    try:
+        return interpret_serology(
+            request.phase_i_igg,
+            request.phase_ii_igg,
+            request.prior_phase_ii_igg,
+            request.persistent_focus,
+        )
+    except SerologyInputError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
 @app.get("/health")
 def health():
-    return {"status": "HEALTHY", "service": "q-fever-serology-classifier", "domain": "Clinical & Biomedical AI", "standard": "CAP / CLSI / ISO Standards", "version": "3.0.0-ENTERPRISE"}
+    return {"status": "HEALTHY", "service": "q-fever-serology-classifier", "domain": "Clinical & Biomedical AI", "standard": "Legacy audit rules are unvalidated; use /api/serology/interpret for IFA IgG patterns", "version": "3.0.1"}
 
 
 @app.get("/metrics")

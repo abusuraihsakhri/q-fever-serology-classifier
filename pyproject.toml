@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "q-fever-serology-classifier"
-version = "3.0.0"
-description = "Q Fever Phase I/II Serology & Chronic Phase Classifier"
+version = "3.0.1"
+description = "Educational interpretation of Coxiella burnetii phase I and phase II IFA IgG titers"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
@@ -25,22 +25,26 @@ classifiers = [
 
 [project.optional-dependencies]
 web = [
-    "fastapi>=0.110",
+    "fastapi>=0.141,<0.142",
     "uvicorn[standard]>=0.27",
-    "pydantic>=2.0",
+    "pydantic>=2.0,<3",
 ]
 dev = [
     "pytest>=8.0",
-    "fastapi>=0.110",
+    "fastapi>=0.141,<0.142",
     "uvicorn[standard]>=0.27",
-    "pydantic>=2.0",
+    "pydantic>=2.0,<3",
+    "httpx2>=2.13,<3",
+    "build>=1.2",
 ]
 
 [project.scripts]
 q-fever-serology = "cli:main"
+q-fever-interpret = "serology_interpreter:main"
 
 [tool.setuptools]
 packages = ["agents"]
+py-modules = ["cli", "q_fever_serology", "serology_interpreter", "enrichment", "simulator"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "."]

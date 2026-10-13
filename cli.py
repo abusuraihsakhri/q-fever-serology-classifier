@@ -12,6 +12,19 @@ from agents.base import AuditLogger
 supervisor = SystemSupervisor(model_provider="mock")
 
 
+def _parse_bool(value):
+    """Correctly parse CSV booleans; bool("false") is True in Python."""
+    if isinstance(value, bool):
+        return value
+    normalized = str(value).strip().lower()
+    if normalized in ("", "false", "0", "no"):
+        return False
+    if normalized in ("true", "1", "yes"):
+        return True
+    raise ValueError("is_critical_flag must be true/false, yes/no, or 1/0")
+
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="q-fever-serology-classifier", description="Q Fever Serology Classifier")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -94,7 +107,7 @@ def main(argv=None):
                 primary_metric=float(r.get("primary_metric", 15.0)),
                 secondary_metric=float(r.get("secondary_metric", 5.0)),
                 status_descriptor=r.get("status_descriptor", "NOMINAL"),
-                is_critical_flag=bool(r.get("is_critical_flag", False)),
+                is_critical_flag=_parse_bool(r.get("is_critical_flag", "")),
             )
             dossier = supervisor.process_task(payload)
             row_dict = dict(r)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Q Fever Phase I/II Serology & Chronic Phase Classifier
-Interprets Coxiella burnetii Phase I and II IgG/IgM titers for acute vs chronic Q fever endocarditis.
+Legacy weighted-score demonstration retained for compatibility.
+NOT a Q fever serology algorithm; use serology_interpreter.py for IFA interpretation.
 
 Zero-dependency Python implementation with single and batch evaluation.
 Author: Dr. Abu Suraih Sakhri
@@ -69,15 +69,16 @@ def calculate_metrics(**kwargs) -> Dict[str, Any]:
     # Classification / tiering
     if rounded_score < 10.0:
         tier = "Low / Standard"
-        action = "Standard monitoring or negative cutoff"
+        action = "Synthetic scoring tier only; no clinical action inferred"
     elif rounded_score < 25.0:
         tier = "Moderate / Intermediate"
-        action = "Close observation or secondary evaluation"
+        action = "Synthetic scoring tier only; no clinical action inferred"
     else:
         tier = "High / Severe"
-        action = "Urgent clinical intervention or primary positive finding"
+        action = "Synthetic scoring tier only; no clinical action inferred"
 
     return {
+        "warning": "Legacy synthetic weighted score: not a Q fever serologic interpretation or clinical recommendation.",
         "tool": "q-fever-serology-classifier",
         "score": rounded_score,
         "classification": tier,
@@ -137,7 +138,11 @@ def process_batch(input_csv: str, output_csv: str) -> None:
             f"CSV file has headers but no data rows: {input_csv}"
         )
 
-    out_fields = fieldnames + ["score", "classification", "clinical_recommendation"]
+    if os.path.abspath(input_csv) == os.path.abspath(output_csv):
+        raise SerologyValidationError("Input and output CSV paths must differ.")
+
+    result_fields = ["score", "classification", "clinical_recommendation"]
+    out_fields = fieldnames + [name for name in result_fields if name not in fieldnames]
     out_rows = []
 
     for r in rows:
@@ -162,7 +167,7 @@ def process_batch(input_csv: str, output_csv: str) -> None:
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Q Fever Phase I/II Serology & Chronic Phase Classifier")
+    parser = argparse.ArgumentParser(description="Legacy synthetic weighted-score demonstration (not clinical serology)")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Single parser
