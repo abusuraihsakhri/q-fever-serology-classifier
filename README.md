@@ -1,229 +1,81 @@
 # Q Fever Serology Classifier
 
-> **Domain:** Infectious Disease Surveillance & Microbiology
-> **Reference Guidelines & Standards:** `CLSI M100, EUCAST & CDC NHSN Clinical Standards`
+Conservative interpretation of *Coxiella burnetii* phase I and phase II IgG indirect immunofluorescence (IFA) titers. The static browser application runs entirely on the user's device. A Python interpreter supports single-case and CSV workflows; a separate FastAPI route exposes the same Python rules.
 
-<div align="center">
+**Clinical limitation:** This is an educational laboratory interpretation aid, **not** a validated diagnostic device, an independent clinical diagnosis, or a treatment recommendation. Test timing, clinical findings, paired specimens, laboratory cutoffs, and evidence of a persistent infection focus must be assessed by a qualified clinician.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg?logo=fastapi&logoColor=white)
-![Audit Trail](https://img.shields.io/badge/Audit-HMAC--SHA256_Tamper--Evident-brightgreen.svg)
-![Zero-PHI Guard](https://img.shields.io/badge/Guard-Zero--PHI_Outbound-blue.svg)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)
+## How to use
 
-</div>
+Open `index.html` through a static HTTP server or the deployed GitHub Pages application. Enter the current phase I and phase II IgG titers (e.g. `1:64` and `1:256`), an optional earlier phase II IgG titer, and whether a compatible persistent focus has been clinically identified. The interface requires no account, API key, or server-side Python.
 
----
-
-## 📖 What It Does
-
-Q Fever Phase I/II Serology & Chronic Phase Classifier
-Interprets Coxiella burnetii Phase I and II IgG/IgM titers for acute vs chronic Q fever endocarditis.
-
-Zero-dependency Python core with single and batch evaluation, plus an enterprise FastAPI REST API with multi-worker agent architecture.
-
-Author: Dr. Abu Suraih Sakhri
-License: MIT
-
----
-
-## 🚀 Installation
-
-### Prerequisites
-- Python 3.10 or higher
-- pip
-
-### Quick Install
-```bash
-# Clone the repository
-git clone https://github.com/abusuraihsakhri/q-fever-serology-classifier.git
-cd q-fever-serology-classifier
-
-# Install with web dependencies (for FastAPI server)
-pip install -e ".[web]"
-
-# Or install with development dependencies (includes pytest)
-pip install -e ".[dev]"
-```
-
-### Security Configuration
-
-**IMPORTANT:** You must set the `AUDIT_SECRET_KEY` environment variable before running the service. This key is used for HMAC-SHA256 audit trail signing.
+To run locally:
 
 ```bash
-# Generate a secure random key
-python -c "import secrets; print(secrets.token_hex(32))"
-
-# Set the environment variable
-export AUDIT_SECRET_KEY="your-generated-key-here"
+python -m http.server 8080
+# Open http://localhost:8080/
 ```
 
-The key must be at least 32 characters long for cryptographic security.
+### Interpretation rules
 
----
+- **Acute seroconversion pattern:** ≥4-fold rise in phase II IgG between paired IFA specimens. Paired testing is preferably performed 3–6 weeks apart. Compatible clinical presentation still matters.
+- **Single supportive sample:** phase II IgG ≥1:128 may support acute infection but cannot confirm it alone. Laboratory-specific cutoffs should be checked.
+- **High phase I IgG:** ≥1:1024 requires evaluation for persistent infection. A compatible persistent focus (e.g., endocarditis or vascular infection) is an essential diagnostic component; titer alone is insufficient.
+- **Early negative results:** do not exclude acute Q fever; consider PCR early in illness and follow-up testing under clinical guidance.
 
-## ⚙️ Key Capabilities & Algorithmic Modules
+Only quantitative IFA IgG denominators are used. IgM is not classified on its own. A reported `<1:16` result is not automatically converted to zero. A prior titer entered as zero cannot establish a quantitative fourfold increase.
 
-### 🔬 Core Analytical Functions
+References: [CDC, Clinical and Laboratory Diagnosis (2024)](https://www.cdc.gov/q-fever/hcp/diagnosis-testing/index.html); [CDC, Diagnosis and Management of Q Fever (MMWR, 2013)](https://www.cdc.gov/mmwr/preview/mmwrhtml/rr6203a1.htm).
 
-- **`calculate_metrics()`** — Core domain algorithm that computes weighted scores from numeric inputs and classifies into Low/Standard, Moderate/Intermediate, or High/Severe tiers.
-- **`process_single()`** — Evaluates a single case from CLI parameters.
-- **`process_batch()`** — Processes batch CSV files with validation and error handling.
+## Python
 
-### 🤖 Enterprise Agent Architecture
+Python 3.10+ is required. The clinical interpreter uses only the Python standard library.
 
-- **InvariantQCWorker** — Primary mathematical & protocol boundary auditor
-- **SafetyEscalationWorker** — Safety boundary & emergency interlock detection
-- **ProtocolConformanceWorker** — Spec conformance & discordance checking
-- **SystemSupervisor** — Multi-worker orchestrator with consensus building
-
----
-
-## 📐 Classification Logic
-
-The classifier computes a weighted score from input parameters:
-
-```text
-score = v1 + v2 * (1/2) + v3 * (1/3) + ...
-```
-
-Classification tiers:
-- **Low / Standard** (score < 10.0): Standard monitoring or negative cutoff
-- **Moderate / Intermediate** (10.0 ≤ score < 25.0): Close observation or secondary evaluation
-- **High / Severe** (score ≥ 25.0): Urgent clinical intervention or primary positive finding
-
----
-
-## 💻 CLI Usage
-
-### 1. Single Case Evaluation
 ```bash
-python -m q_fever_serology single --v1 14.5 --v2 4.2 --v3 1.8
+python serology_interpreter.py single --phase-i-igg 64 --phase-ii-igg 256 --prior-phase-ii-igg 64
+python serology_interpreter.py single --phase-i-igg 1024 --phase-ii-igg 2048 --persistent-focus
+python serology_interpreter.py batch -i sample_serology.csv -o results.csv
 ```
 
-### 2. Batch CSV Processing
+Use `phase_i_igg` and `phase_ii_igg` as required CSV headers; `prior_phase_ii_igg` and `persistent_focus` are optional. Boolean focus values: `yes/no`, `true/false`, or `1/0`. Rows are evaluated locally; invalid titers abort the export.
+
+The installed command is `q-fever-interpret`:
+
 ```bash
-python -m q_fever_serology batch -i sample.csv -o results.csv
+python -m pip install -e .
+q-fever-interpret single --phase-i-igg 64 --phase-ii-igg 256 --prior-phase-ii-igg 64
 ```
 
-### 3. Enterprise CLI (requires web dependencies)
+**Compatibility:** `q_fever_serology.py` (`calculate_metrics`, `single`, `batch`) and `cli.py`'s older audit commands remain available for existing integrations. Their arbitrary weighted scores and operational alert thresholds are *legacy demonstrations*, **not Q fever serologic criteria**. Do not use their severity labels for clinical decisions.
+
+## Optional local API
+
 ```bash
-# Run audit task
-python cli.py audit --task-id TASK-001 --primary 28.5 --secondary 14.2
-
-# Batch processing
-python cli.py batch -i sample.csv -o results.csv
-
-# Verify audit trail
-python cli.py verify-audit
-
-# Start REST API server
+python -m pip install -e ".[web]"
+export AUDIT_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')"
 python cli.py serve --host 127.0.0.1 --port 8000
 ```
 
-### Input Data Schema (Batch CSV)
+`POST /api/serology/interpret` accepts JSON:
 
-| Field | Description | Requirement |
-|:------|:------------|:------------|
-| `Patient_ID` | Unique patient identifier | Required |
-| `v1` | Primary measurement value | Required |
-| `v2` | Secondary measurement value | Required |
-| `v3` | Tertiary measurement value | Optional |
-
----
-
-## 🌐 REST API
-
-The FastAPI server provides these endpoints:
-
-| Endpoint | Method | Description |
-|:---------|:-------|:------------|
-| `/health` | GET | Health check and service metadata |
-| `/metrics` | GET | Prometheus operational metrics |
-| `/api/audit` | POST | Submit task for multi-worker evaluation |
-| `/api/chat` | POST | Supervisory conversational assistant |
-| `/api/audit/logs` | GET | Retrieve and verify HMAC audit trail |
-
-### Example API Request
-```bash
-curl -X POST http://localhost:8000/api/audit \
-  -H "Content-Type: application/json" \
-  -d '{
-    "task_id": "TASK-001",
-    "target_identifier": "SPECIMEN-01",
-    "primary_metric": 28.5,
-    "secondary_metric": 14.2,
-    "status_descriptor": "DISCORDANT_ANOMALY",
-    "is_critical_flag": true
-  }'
+```json
+{"phase_i_igg":"1:64","phase_ii_igg":"1:256","prior_phase_ii_igg":"1:64","persistent_focus":false}
 ```
 
----
+The older operational endpoints (`/api/audit`, `/api/chat`, `/api/audit/logs`, `/health`, `/metrics`) remain for compatibility. The chat mode returns mock text; it does not run or verify clinical reasoning. The audit endpoint's metric thresholds are not medically validated. This development API has **no authentication**; bind it only to trusted interfaces, and do not place it on the public internet or submit protected health information. Docker Compose binds to localhost and requires an explicitly supplied audit key.
 
-## 🛡️ Security & Enterprise Architecture
+## Privacy, verification, and technology
 
-* **Zero-PHI Outbound Interceptor:** Active regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers.
-* **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation and state transition.
-* **Air-Gapped LLM Reasoning Adapter:** Agnostic integration for local Ollama instances (`llama3`, `mistral`), Claude 3.5 Sonnet, GPT-4o, and deterministic test mocks.
-* **Active Learning Bayesian Calibration:** Dynamic tracker updating worker reliability weights and monitoring Brier calibration drift.
-* **FastAPI & Prometheus Telemetry:** Exposes OpenAPI 3.1 REST endpoints and operational Prometheus metrics (`/metrics`).
+- The static app uses HTML, CSS, and JavaScript modules. It has no analytics, remote fonts, API requests, browser storage, or telemetry. External CDC links open only when selected. Do not enter patient identifiers.
+- The Python clinical rules are implemented separately in `serology_interpreter.py`; automated Python and JavaScript test vectors cover key serologic patterns and invalid inputs.
+- The optional FastAPI/Pydantic service provides in-memory audit records and HMAC verification. Regex checks for common identifiers are **not** comprehensive de-identification or a HIPAA compliance guarantee.
+- The browser UI targets current evergreen desktop and mobile browsers with JavaScript modules. The Python tools run on Python 3.10–3.12.
 
----
-
-## 🧪 Testing & Verification
-
-Run the automated test suite:
+Run tests with:
 
 ```bash
-pytest -v
+python -m pip install -e ".[dev]"
+pytest -q
+node --test tests/test_browser.mjs
 ```
 
-Execute high-throughput batch simulation benchmarks:
-
-```bash
-python simulator.py 1000
-```
-
----
-
-## 🐳 Container Deployment
-
-```bash
-# Build and run with Docker Compose
-AUDIT_SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))") docker-compose up -d
-
-# Or build and run manually
-docker build -t q-fever-serology-classifier .
-docker run -p 8000:8000 -e AUDIT_SECRET_KEY="your-secure-key" q-fever-serology-classifier
-```
-
----
-
-## 📁 Project Structure
-
-```
-q-fever-serology-classifier/
-├── agents/                  # Enterprise agent architecture
-│   ├── api.py              # FastAPI REST endpoints
-│   ├── base.py             # Security, PHI guard, audit trail
-│   ├── models.py           # Pydantic data models
-│   ├── supervisor.py       # Multi-worker orchestrator
-│   ├── workers.py          # Specialized domain workers
-│   ├── llm_factory.py      # LLM provider factory
-│   ├── learning.py         # Bayesian calibration engine
-│   ├── metrics.py          # Prometheus metrics collector
-│   └── streamer.py         # WebSocket telemetry broadcaster
-├── tests/                  # Test suite
-│   ├── test_api.py         # API endpoint tests
-│   ├── test_enrichment.py  # Enrichment engine tests
-│   └── test_q_fever_serology_classifier.py  # Core classifier tests
-├── web/                    # Operations console (HTML)
-├── q_fever_serology.py     # Core algorithm (zero-dependency)
-├── cli.py                  # Enterprise CLI entry point
-├── enrichment.py           # Enrichment feature engines
-├── simulator.py            # High-throughput stress tester
-├── pyproject.toml          # Project configuration
-├── Dockerfile              # Container build
-└── docker-compose.yml      # Container orchestration
-```
+License: [MIT](LICENSE).

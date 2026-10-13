@@ -54,8 +54,6 @@ def interpret_serology(phase_i_igg, phase_ii_igg, prior_phase_ii_igg=None, persi
     prior = parse_titer(prior_phase_ii_igg, optional=True)
     if not isinstance(persistent_focus, bool):
         raise SerologyInputError("persistent_focus must be a boolean.")
-    if prior is not None and prior > phase_ii and phase_ii == 0:
-        pass  # A falling titer is permissible and is not a diagnostic rise.
     fourfold = prior is not None and prior > 0 and phase_ii >= 4 * prior
     high_phase_i = phase_i >= 1024
     supportive_phase_ii = phase_ii >= 128
