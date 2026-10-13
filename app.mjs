@@ -25,7 +25,7 @@ export function classify(phaseIInput, phaseIIInput, priorInput = "", hasFocus = 
   return {status: "insufficient_serologic_evidence", label: "No definitive serologic pattern from supplied values", guidance: "Early negative serology does not exclude Q fever; consider PCR in the early illness window and convalescent IFA 3–6 weeks later.", fourfold};
 }
 
-const form = document.getElementById("serology-form");
+const form = typeof document === "undefined" ? null : document.getElementById("serology-form");
 if (form) form.addEventListener("submit", event => {
   event.preventDefault();
   const resultEl = document.getElementById("result");
